@@ -1,0 +1,99 @@
+# Création des différentes ressources.
+## Ressource group.
+  - name: Create a resource group
+    azure_rm_resourcegroup:
+      name: rg-openshift32
+      location: westeurope
+
+## Storage account.
+  - name: Create storage account for nodes
+    azure_rm_storageaccount:
+      resource_group: rg-openshift32
+      name: openshiftstonodes
+      account_type: Standard_LRS
+
+  - name: Create storage account for master
+    azure_rm_storageaccount:
+      resource_group: rg-openshift32
+      name: openshiftstomaster
+      account_type: Standard_LRS
+
+  - name: Create storage account for infranode
+    azure_rm_storageaccount:
+      resource_group: rg-openshift32
+      name: openshiftstoinfra
+      account_type: Standard_LRS
+
+## Virtual network
+  - name: Create virtual network
+    azure_rm_virtualnetwork:
+      resource_group: rg-openshift32
+      name: OpenShiftVNet
+      address_prefixes: "10.0.0.0/16"
+
+  - name: Add subnet for nodes
+    azure_rm_subnet:
+      resource_group: rg-openshift32
+      name: OpenShiftVSubnetNodes
+      address_prefix: "10.0.1.0/24"
+      virtual_network: OpenShiftVNet
+
+  - name: Add subnet for master
+    azure_rm_subnet:
+      resource_group: rg-openshift32
+      name: OpenShiftVSubnetMaster
+      address_prefix: "10.0.0.0/24"
+      virtual_network: OpenShiftVNet
+
+  - name: Add subnet for infra
+    azure_rm_subnet:
+      resource_group: rg-openshift32
+      name: OpenShiftVSubnetInfra
+      address_prefix: "10.0.2.0/24"
+      virtual_network: OpenShiftVNet
+
+## FIXME
+  - name: Create public ip
+    azure_rm_publicipaddress:
+      resource_group: rg-openshift32
+      allocation_method: Static
+      name: whpublicip001
+
+  - name: Create security group that allows SSH
+    azure_rm_securitygroup:
+      resource_group: rg-openshift32
+      name: whsecgroup001
+      rules:
+        - name: SSH
+          protocol: Tcp
+          destination_port_range: 22
+          access: Allow
+          priority: 101
+          direction: Inbound
+
+  - name: Create NIC
+    azure_rm_networkinterface:
+      resource_group: rg-openshift32
+      name: whvirtualnic1
+      virtual_network: OpenShiftVNet
+      subnet: whsubnet1
+      public_ip_name: whpublicip001
+      security_group: whsecgroup001
+
+  - name: Create virtual machine
+    azure_rm_virtualmachine:
+      resource_group: rg-openshift32
+      name: whtestvm001
+      vm_size: Standard_D1
+      storage_account: openshiftsto01
+      storage_container: whtestvm001
+      storage_blob: whtestvm001.vhd
+      admin_username: william
+      admin_password: Redhat123!
+      network_interfaces: whvirtualnic1
+      image:
+        offer: RHEL
+        publisher: RedHat
+        sku: '7.2'
+        version: latest
+#

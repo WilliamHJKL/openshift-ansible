@@ -1,0 +1,11 @@
+- hosts: localhost
+  connection: local
+  gather_facts: no
+  tasks:
+
+  - name: Delete a resource group
+    azure_rm_resourcegroup:
+      name: rgose
+      location: westeurope
+      state: absent
+      force: yes
